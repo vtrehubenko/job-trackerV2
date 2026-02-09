@@ -13,7 +13,6 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "job-tracker-api" });
 });
 
-// ✅ новый роут
 app.get("/jobs", async (_req, res) => {
   const jobs = await prisma.job.findMany({ orderBy: { createdAt: "desc" } });
   res.json(jobs);
@@ -36,7 +35,6 @@ app.post("/jobs", async (req, res) => {
       .json({ message: "company and position are required" });
   }
 
-  // временно: demo-user чтобы не делать auth прямо сейчас
   const demoEmail = "demo@jobtracker.local";
   const user =
     (await prisma.user.findUnique({ where: { email: demoEmail } })) ??
