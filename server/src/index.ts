@@ -21,3 +21,32 @@ app.get("/jobs", async (_req, res) => {
 
 const PORT = Number(process.env.PORT) || 4000;
 app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));
+
+app.get("/jobs", async (_req, res) => {
+  const jobs = await prisma.job.findMany({ orderBy: { createdAt: "desc" } });
+  res.json(jobs);
+});
+
+app.post("/jobs", async (req, res) => {
+  const { company, position } = req.body;
+
+  if (!company || !position) {
+    return res
+      .status(400)
+      .json({ message: "company and position are required" });
+  }
+
+  // временно: demo-user чтобы не делать auth прямо сейчас
+  const demoEmail = "demo@jobtracker.local";
+  const user =
+    (await prisma.user.findUnique({ where: { email: demoEmail } })) ??
+    (await prisma.user.create({
+      data: { email: demoEmail, password: "demo" },
+    }));
+
+  const job = await prisma.job.create({
+    data: { company, position, userId: user.id },
+  });
+
+  res.status(201).json(job);
+});
