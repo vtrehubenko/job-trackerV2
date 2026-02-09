@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { prisma } from "./lib/prisma";
+import { createJobSchema } from "./schemas/job.schema";
+import { ZodError } from "zod";
 
 dotenv.config();
 
@@ -27,24 +29,29 @@ app.get("/jobs", async (_req, res) => {
 });
 
 app.post("/jobs", async (req, res) => {
-  const { company, position } = req.body;
+  try {
+    const { company, position } = createJobSchema.parse(req.body);
 
-  if (!company || !position) {
-    return res
-      .status(400)
-      .json({ message: "company and position are required" });
+    const demoEmail = "demo@jobtracker.local";
+    const user =
+      (await prisma.user.findUnique({ where: { email: demoEmail } })) ??
+      (await prisma.user.create({
+        data: { email: demoEmail, password: "demo" },
+      }));
+
+    const job = await prisma.job.create({
+      data: { company, position, userId: user.id },
+    });
+
+    res.status(201).json(job);
+  } catch (err) {
+    if (err instanceof ZodError) {
+      return res.status(400).json({
+        message: "Validation error",
+        errors: err.flatten(),
+      });
+    }
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-
-  const demoEmail = "demo@jobtracker.local";
-  const user =
-    (await prisma.user.findUnique({ where: { email: demoEmail } })) ??
-    (await prisma.user.create({
-      data: { email: demoEmail, password: "demo" },
-    }));
-
-  const job = await prisma.job.create({
-    data: { company, position, userId: user.id },
-  });
-
-  res.status(201).json(job);
 });
