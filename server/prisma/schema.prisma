@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -17,13 +15,21 @@ model User {
   jobs      Job[]
 }
 
+enum JobStatus {
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
 model Job {
   id        String   @id @default(cuid())
   company   String
   position  String
-  status    String   @default("APPLIED")
+  status    JobStatus @default(APPLIED)
   createdAt DateTime @default(now())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+

@@ -3,6 +3,7 @@ import { validate } from "../middlewares/validate";
 import { createJobSchema } from "../schemas/job.schema";
 import { asyncHandler } from "../utils/asyncHandler";
 import { getAllJobs, createJob } from "../services/job.service";
+import { deleteJob } from "../services/job.service";
 
 const router = Router();
 
@@ -21,6 +22,16 @@ router.post(
     const { company, position } = req.body;
     const job = await createJob(company, position);
     res.status(201).json(job);
+  }),
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    await deleteJob(id);
+    return res.status(204).send();
   }),
 );
 
