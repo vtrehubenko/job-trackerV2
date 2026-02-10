@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import { errorHandler } from "./middlewares/errorHandler";
 import authRoutes from "./routes/auth.routes";
 import jobsRoutes from "./routes/jobs.routes";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./swagger";
 
 dotenv.config();
 
@@ -23,5 +25,7 @@ const PORT = Number(process.env.PORT) || 4000;
 app.use(errorHandler);
 
 app.use("/auth", authRoutes);
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));
