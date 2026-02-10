@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { errorHandler } from "./middlewares/errorHandler";
-
+import authRoutes from "./routes/auth.routes";
 import jobsRoutes from "./routes/jobs.routes";
 
 dotenv.config();
@@ -21,5 +21,7 @@ app.use("/jobs", jobsRoutes);
 const PORT = Number(process.env.PORT) || 4000;
 
 app.use(errorHandler);
+
+app.use("/auth", authRoutes);
 
 app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`));

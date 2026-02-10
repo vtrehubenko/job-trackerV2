@@ -1,33 +1,21 @@
 import { prisma } from "../lib/prisma";
 
-export const getAllJobs = async () => {
+export function getAllJobs(userId: string) {
   return prisma.job.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
   });
-};
+}
 
-export const createJob = async (company: string, position: string) => {
-  const demoEmail = "demo@jobtracker.local";
-
-  const user =
-    (await prisma.user.findUnique({
-      where: { email: demoEmail },
-    })) ??
-    (await prisma.user.create({
-      data: {
-        email: demoEmail,
-        password: "demo",
-      },
-    }));
-
+export async function createJob(
+  company: string,
+  position: string,
+  userId: string,
+) {
   return prisma.job.create({
-    data: {
-      company,
-      position,
-      userId: user.id,
-    },
+    data: { company, position, userId },
   });
-};
+}
 
 export const deleteJob = async (id: string) => {
   const job = await prisma.job.findUnique({
