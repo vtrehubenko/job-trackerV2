@@ -1,31 +1,56 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
+import { Prisma } from "@prisma/client";
 
 export const errorHandler = (
-  err: any,
+  err: unknown,
   _req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
-  //Zod
+  // Zod validation
   if (err instanceof ZodError) {
     return res.status(400).json({
       message: "Validation error",
+      code: "VALIDATION_ERROR",
       errors: err.flatten(),
     });
   }
 
-  // custom errors
-  if (err.status) {
-    return res.status(err.status).json({
-      message: err.message,
+  // Prisma not found (P2025)
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2025"
+  ) {
+    return res.status(404).json({
+      message: "Resource not found",
+      code: "NOT_FOUND",
     });
   }
 
-  // Prisma not found
-  if (err.code === "P2025") {
-    return res.status(404).json({
-      message: "Resource not found",
+  // Prisma unique constraint (P2002)
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2002"
+  ) {
+    return res.status(409).json({
+      message: "Resource already exists",
+      code: "CONFLICT",
+      details: err.meta,
+    });
+  }
+
+  // Custom errors
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "status" in err &&
+    "message" in err
+  ) {
+    const customError = err as { status: number; message: string };
+    return res.status(customError.status).json({
+      message: customError.message,
+      code: "CUSTOM_ERROR",
     });
   }
 
@@ -33,5 +58,6 @@ export const errorHandler = (
 
   return res.status(500).json({
     message: "Internal Server Error",
+    code: "INTERNAL_ERROR",
   });
 };
