@@ -27,8 +27,6 @@ export const errorHandler = (
       code: "NOT_FOUND",
     });
   }
-
-  // Prisma unique constraint (P2002)
   if (
     err instanceof Prisma.PrismaClientKnownRequestError &&
     err.code === "P2002"
@@ -39,8 +37,6 @@ export const errorHandler = (
       details: err.meta,
     });
   }
-
-  // Custom errors
   if (
     typeof err === "object" &&
     err !== null &&
